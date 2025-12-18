@@ -1,0 +1,144 @@
+/* --- Biến (Variables) --- */
+:root {
+    --sidebar-bg: #231b2e;
+    --sidebar-text: #dadada;
+    --sidebar-text-active: #ffffff;
+    --sidebar-active-bg: #3a3344;
+    --sidebar-indicator: #9b4de0;
+    --player-height: 90px;
+}
+
+/* --- 1. Khung Sidebar chính --- */
+.zm-sidebar {
+  width: 240px;
+  background-color: var(--sidebar-bg);
+  color: var(--sidebar-text);
+  
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 100; /* Cao-hơn (Higher) Header (99) */
+  height: calc(100vh - var(--player-height)); /* Dừng-trên (Stops above) trình-phát (player) */
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.zm-sidebar-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+/* === SỬA: Style-logo (Logo style) NCT mới (new) === */
+.sidebar-brand-nct {
+  display: flex;
+  flex-direction: column;
+  padding: 0 5px 15px 5px;
+  margin-bottom: 15px;
+  border-bottom: 1px solid var(--sidebar-active-bg);
+}
+.sidebar-brand-nct-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--sidebar-text-active);
+  font-size: 20px;
+  font-weight: 700;
+}
+.sidebar-brand-nct-logo svg {
+  font-size: 28px;
+}
+.sidebar-brand-nct-text {
+  font-size: 12px;
+  color: var(--sidebar-text);
+  margin-top: 4px;
+}
+
+/* === SỬA: Xóa (Removed) style .zm-navbar-brand cũ (old) === */
+
+
+/* --- 3. Menu điều hướng chính --- */
+.zm-navbar-main {
+  margin-bottom: 20px;
+}
+
+.zm-navbar-menu {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.zm-navbar-item {
+  cursor: pointer; /* Thêm (Add) con-trỏ (cursor) */
+}
+.zm-navbar-item a {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  color: var(--sidebar-text);
+  padding: 10px 15px;
+  border-radius: 8px; /* Bo-tròn-hơn (More rounded) */
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.zm-navbar-item a svg {
+  font-size: 22px;
+}
+
+/* Trạng-thái (State) Active & Hover */
+.zm-navbar-item.is-active a {
+  background-color: var(--sidebar-active-bg);
+  color: var(--sidebar-text-active);
+}
+.zm-navbar-item:not(.is-active) a:hover {
+  background-color: #2c243a; /* Màu-hover-nhạt-hơn (Lighter hover color) */
+  color: var(--sidebar-text-active);
+}
+
+/* --- 4. Phần "Thư Viện" --- */
+.library-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--sidebar-text); /* Đổi-thành (Changed to) màu-văn-bản (text color) sáng-hơn (brighter) */
+  text-transform: uppercase;
+  padding: 15px 15px 10px 15px;
+  border-top: 1px solid var(--sidebar-active-bg);
+}
+
+/* --- 5. Container Đăng nhập (Đẩy-xuống-dưới (Pushed to bottom)) --- */
+/* === SỬA: Cập-nhật (Updated) style-đăng-nhập (login style) === */
+.login-nav-container {
+  margin-top: auto; /* Đẩy-xuống-dưới (Pushes to bottom) */
+  padding: 15px 0;
+  text-align: left; /* Căn-trái (Left-align) */
+}
+
+.login-nav-text {
+  font-size: 13px;
+  color: var(--sidebar-text);
+  margin-bottom: 15px;
+  line-height: 1.5;
+  padding: 0 10px; /* Thêm-padding (Add padding) */
+}
+
+.login-nav-btn {
+  background-color: var(--sidebar-active-bg); /* Nền-tối (Dark background) */
+  color: var(--sidebar-text-active); /* Chữ-sáng (Light text) */
+  border: none;
+  border-radius: 999px; /* Bo-tròn (Rounded) */
+  padding: 10px 0; /* Điều-chỉnh (Adjust) padding */
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+  width: 100%; /* Chiều-rộng-đầy-đủ (Full width) */
+  display: flex; /* Thêm (Add) */
+  justify-content: center; /* Thêm (Add) */
+}
+.login-nav-btn:hover {
+  transform: scale(1.03); /* Hiệu-ứng-phóng-to-nhẹ (Slight zoom effect) */
+  background-color: #4a4155; /* Sáng-hơn-một-chút (A bit lighter) */
+}

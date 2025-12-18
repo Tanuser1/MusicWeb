@@ -1,0 +1,27 @@
+/* Giả-sử (Assuming) chiều-cao (heights):
+  Header = 70px
+  PlayerControls = 90px
+  Sidebar = 240px
+*/
+
+.main-content-wrapper {
+  /* 1. Đẩy nó ra-khỏi (away from) Sidebar (240px) */
+  margin-left: 240px;
+
+  /* 2. Đẩy nó ra-khỏi (away from) Header (70px) */
+  padding-top: 70px;
+
+  /* 3. Đẩy nó ra-khỏi (away from) PlayerControls (90px) */
+  padding-bottom: 90px;
+
+  /* Đảm-bảo (Ensure) nó có-ít-nhất (at least) chiều-cao-màn-hình (screen height) */
+  min-height: 100vh;
+  box-sizing: border-box; /* Rất quan-trọng (Very important) */
+}
+
+/* SỬA: Kích-hoạt (Activated) dòng-này (this line)
+  để-nội-dung (so the content) có-màu-nền (has a background color)
+*/
+.main-content-wrapper {
+  background-color: #170f23; 
+}
