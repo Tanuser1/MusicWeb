@@ -49,6 +49,49 @@ router.get('/stats', async (req, res) => {
     }
 });
 
+// API Lấy dữ liệu biểu đồ (Doanh thu & User mới 12 tháng qua)
+router.get('/dashboard-charts', async (req, res) => {
+    try {
+        const months = parseInt(req.query.months) || 12;
+
+        // 1. Query Doanh thu theo tháng (Giả định cột ngày là NgayTao trong bảng hoadon)
+        const [revenueRows] = await pool.execute(`
+            SELECT DATE_FORMAT(NgayTao, '%m/%Y') as month, SUM(TongTien) as total
+            FROM hoadon
+            WHERE (TrangThai = 'paid' OR TrangThai = 'completed')
+              AND NgayTao >= DATE_SUB(NOW(), INTERVAL ${months} MONTH)
+            GROUP BY DATE_FORMAT(NgayTao, '%Y-%m'), DATE_FORMAT(NgayTao, '%m/%Y')
+            ORDER BY DATE_FORMAT(NgayTao, '%Y-%m') ASC
+        `);
+
+        // 2. Query User mới theo tháng
+        const [userRows] = await pool.execute(`
+            SELECT DATE_FORMAT(NgayThamGia, '%m/%Y') as month, COUNT(*) as count
+            FROM nguoidung
+            WHERE NgayThamGia >= DATE_SUB(NOW(), INTERVAL ${months} MONTH)
+            GROUP BY DATE_FORMAT(NgayThamGia, '%Y-%m'), DATE_FORMAT(NgayThamGia, '%m/%Y')
+            ORDER BY DATE_FORMAT(NgayThamGia, '%Y-%m') ASC
+        `);
+
+        const revenueData = {
+            labels: revenueRows.map(r => r.month),
+            values: revenueRows.map(r => parseFloat(r.total))
+        };
+
+        const usersData = {
+            labels: userRows.map(r => r.month),
+            values: userRows.map(r => r.count)
+        };
+
+        res.json({ revenue: revenueData, users: usersData });
+
+    } catch (error) {
+        console.error("Dashboard charts error:", error);
+        // Trả về dữ liệu rỗng để frontend không lỗi
+        res.json({ revenue: { labels: [], values: [] }, users: { labels: [], values: [] } });
+    }
+});
+
 // ==========================================
 // 2. API QUẢN LÝ BÀI HÁT
 // ==========================================
