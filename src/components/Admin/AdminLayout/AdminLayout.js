@@ -1,68 +1,73 @@
-import React, { useState } from 'react';
+import React from 'react';
 import './AdminLayout.css';
 import { 
   IoHomeOutline, 
   IoMusicalNotesOutline, 
-  IoAlbumsOutline, 
-  IoPeopleOutline, 
-  IoLogOutOutline,
-  IoPersonCircleOutline
+  IoPersonOutline, 
+  IoDiscOutline, 
+  IoMicOutline, 
+  IoLogOutOutline 
 } from 'react-icons/io5';
 
-function AdminLayout({ children, onNavigate, currentView, onLogout }) {
+function AdminLayout({ children, currentView, onNavigate, onLogout }) {
   return (
-    <div className="admin-container">
-      {/* Sidebar Admin */}
-      <aside className="admin-sidebar">
-        <div className="admin-brand">
+    <div className="admin-layout">
+      <div className="admin-sidebar">
+        <div className="admin-logo">
           <h2>Music Admin</h2>
         </div>
         
-        <nav className="admin-nav">
-          <ul>
-            <li 
-              className={currentView === 'dashboard' ? 'active' : ''}
-              onClick={() => onNavigate('dashboard')}
-            >
-              <IoHomeOutline /> Tổng Quan
-            </li>
-            <li 
-              className={currentView === 'songs' ? 'active' : ''}
-              onClick={() => onNavigate('songs')}
-            >
-              <IoMusicalNotesOutline /> Quản Lý Bài Hát
-            </li>
-            
-            <li 
-              className={currentView === 'users' ? 'active' : ''}
-              onClick={() => onNavigate('users')}
-            >
-              <IoPeopleOutline /> Quản Lý Người Dùng
-            </li>
-          </ul>
-        </nav>
+        <ul className="admin-menu">
+          <li 
+            className={currentView === 'dashboard' ? 'active' : ''} 
+            onClick={() => onNavigate('dashboard')}
+          >
+            <IoHomeOutline />
+            <span>Dashboard</span>
+          </li>
+          
+          <li 
+            className={currentView === 'songs' ? 'active' : ''} 
+            onClick={() => onNavigate('songs')}
+          >
+            <IoMusicalNotesOutline />
+            <span>Quản lý Bài hát</span>
+          </li>
 
-        <div className="admin-footer">
-           <button className="admin-logout-btn" onClick={onLogout}>
-              <IoLogOutOutline /> Đăng Xuất
-           </button>
-        </div>
-      </aside>
+          <li 
+            className={currentView === 'albums' ? 'active' : ''} 
+            onClick={() => onNavigate('albums')}
+          >
+            <IoDiscOutline />
+            <span>Quản lý Album</span>
+          </li>
 
-      {/* Main Content Area */}
-      <main className="admin-main">
-        <header className="admin-header">
-            <h3>Quản Trị Hệ Thống</h3>
-            <div className="admin-profile">
-                <span>Admin</span>
-                <IoPersonCircleOutline size={30} />
-            </div>
-        </header>
-        
-        <div className="admin-content-wrapper">
-            {children}
+          <li 
+            className={currentView === 'artists' ? 'active' : ''} 
+            onClick={() => onNavigate('artists')}
+          >
+            <IoMicOutline />
+            <span>Quản lý Nghệ sĩ</span>
+          </li>
+
+          <li 
+            className={currentView === 'users' ? 'active' : ''} 
+            onClick={() => onNavigate('users')}
+          >
+            <IoPersonOutline />
+            <span>Quản lý Người dùng</span>
+          </li>
+        </ul>
+
+        <div className="admin-logout" onClick={onLogout}>
+          <IoLogOutOutline />
+          <span>Đăng xuất</span>
         </div>
-      </main>
+      </div>
+
+      <div className="admin-content">
+        {children}
+      </div>
     </div>
   );
 }

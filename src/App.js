@@ -26,6 +26,7 @@ import Dashboard from './components/Admin/Dashboard/Dashboard';
 import SongManager from './components/Admin/SongManager/SongManager';
 import UserManager from './components/Admin/UserManager/UserManager';
 import AlbumManager from './components/Admin/AlbumManager/AlbumManager'; 
+import ArtistManager from './components/Admin/ArtistManager/ArtistManager';
 import AlbumLibrary from './components/AlbumLibrary/AlbumLibrary';
 
 
@@ -35,9 +36,6 @@ function App() {
   const [playlist, setPlaylist] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(-1);
   
-// Thêm state view cho Admin
-  const [adminView, setAdminView] = useState('dashboard');
-
   // currentView có thể là: 'main', 'album', 'favorites'
   const [currentView, setCurrentView] = useState('main');   
   // Trạng thái UI
@@ -100,21 +98,6 @@ function App() {
     }
   }, [isLoggedIn]);
 
-  useEffect(() => {
-    if (isLoggedIn) {
-      fetch('http://localhost:5001/api/favorites', {
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-      })
-      .then(res => res.json())
-      .then(data => {
-        const favSet = new Set(data.map(song => song.id));
-        setFavorites(favSet);
-      })
-      .catch(err => console.error("Lỗi tải yêu thích:", err));
-    } else {
-      setFavorites(new Set());
-    }
-  }, [isLoggedIn]);
   // --- LOGIC GHI NHẬN LỊCH SỬ ---
   const recordHistory = useCallback(async (songId) => {
     if (!isLoggedIn) return;
@@ -161,18 +144,6 @@ function App() {
         recordHistory(currentSong.id);
     }
   }, [currentSong, recordHistory]);
-
-// Hàm render nội dung Admin
-  const renderAdminContent = () => {
-      switch (adminView) {
-          case 'dashboard': return <Dashboard />;
-          case 'songs': return <SongManager />;
-          // case 'albums': return <AlbumManager />;
-          // case 'users': return <UserManager />;
-          default: return <Dashboard />;
-      }
-  };
-  
 
   // --- HÀM XỬ LÝ LOGIC (HANDLERS) ---
   
@@ -429,6 +400,7 @@ const handleUpdateUser = useCallback((updatedUserData) => {
               {currentView === 'admin-songs' && <SongManager />}
               {currentView === 'admin-users' && <UserManager />}
               {currentView === 'admin-albums' && <AlbumManager />}
+              {currentView === 'admin-artists' && <ArtistManager />}
 
               {/* Thêm các trang admin khác ở đây */}
           </AdminLayout>

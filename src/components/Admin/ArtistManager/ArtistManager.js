@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import './AlbumManager.css';
+import './ArtistManager.css';
 
-function AlbumManager() {
-  const [albums, setAlbums] = useState([]);
+function ArtistManager() {
+  const [artists, setArtists] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -15,39 +15,40 @@ function AlbumManager() {
 
   // State cho form
   const [formData, setFormData] = useState({
-    title: '',
+    name: '',
     imageUrl: '',
-    artists: '',
     description: ''
   });
 
-  const fetchAlbums = (page = 1) => {
+  const fetchArtists = (page = 1) => {
     const token = localStorage.getItem('token');
     setLoading(true);
-    fetch(`http://localhost:5001/api/admin/albums?page=${page}&limit=${limit}`, {
+    fetch(`http://localhost:5001/api/admin/artists?page=${page}&limit=${limit}`, {
       headers: { 'Authorization': `Bearer ${token}` }
     })
     .then(res => res.json())
     .then(response => {
       if (response.data && Array.isArray(response.data)) {
-        setAlbums(response.data);
+        setArtists(response.data);
         if (response.pagination) {
           setTotalPages(response.pagination.totalPages);
           setCurrentPage(response.pagination.page);
         }
       } else if (Array.isArray(response)) {
-          // Fallback nếu API trả về mảng trực tiếp
-          setAlbums(response);
+        // Fallback nếu API trả về một mảng trực tiếp không có phân trang
+        setArtists(response);
+        setTotalPages(1);
+        setCurrentPage(1);
       } else {
-          setAlbums([]);
+        setArtists([]); // Đảm bảo artists là một mảng nếu API trả về lỗi
       }
     })
-    .catch(err => console.error("Lỗi khi tải danh sách album:", err))
+    .catch(err => console.error("Lỗi khi tải danh sách nghệ sĩ:", err))
     .finally(() => setLoading(false));
   };
 
   useEffect(() => {
-    fetchAlbums(currentPage);
+    fetchArtists(currentPage);
   }, [currentPage]);
 
   const handlePageChange = (newPage) => {
@@ -57,35 +58,34 @@ function AlbumManager() {
   };
 
   const handleDelete = (id) => {
-    if (window.confirm("Bạn có chắc muốn xóa album này?")) {
+    if (window.confirm("Bạn có chắc muốn xóa nghệ sĩ này? Mọi bài hát và album liên quan có thể bị ảnh hưởng.")) {
       const token = localStorage.getItem('token');
-      fetch(`http://localhost:5001/api/admin/albums/${id}`, {
+      fetch(`http://localhost:5001/api/admin/artists/${id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       })
       .then(res => res.json())
       .then(data => {
         alert(data.message || "Đã xóa thành công");
-        fetchAlbums(currentPage);
+        fetchArtists(currentPage);
       })
-      .catch(err => alert("Lỗi khi xóa album"));
+      .catch(err => alert("Lỗi khi xóa nghệ sĩ"));
     }
   };
 
   const openAddModal = () => {
     setIsEditing(false);
-    setFormData({ title: '', imageUrl: '', artists: '', description: '' });
+    setFormData({ name: '', imageUrl: '', description: '' });
     setShowModal(true);
   };
 
-  const openEditModal = (album) => {
+  const openEditModal = (artist) => {
     setIsEditing(true);
-    setEditingId(album.id);
+    setEditingId(artist.id);
     setFormData({
-      title: album.title || '',
-      imageUrl: album.imageUrl || '',
-      artists: album.artists || '',
-      description: album.description || ''
+      name: artist.name || '',
+      imageUrl: artist.imageUrl || '',
+      description: artist.description || ''
     });
     setShowModal(true);
   };
@@ -98,7 +98,7 @@ function AlbumManager() {
   const handleSubmit = (e) => {
     e.preventDefault();
     const token = localStorage.getItem('token');
-    const url = isEditing ? `http://localhost:5001/api/admin/albums/${editingId}` : 'http://localhost:5001/api/admin/albums';
+    const url = isEditing ? `http://localhost:5001/api/admin/artists/${editingId}` : 'http://localhost:5001/api/admin/artists';
     const method = isEditing ? 'PUT' : 'POST';
 
     fetch(url, {
@@ -112,9 +112,9 @@ function AlbumManager() {
     .then(res => res.json())
     .then(data => {
       if (data.message || data.id) {
-        alert(isEditing ? "Cập nhật thành công!" : "Thêm album thành công!");
+        alert(isEditing ? "Cập nhật thành công!" : "Thêm nghệ sĩ thành công!");
         setShowModal(false);
-        fetchAlbums(currentPage);
+        fetchArtists(currentPage);
       } else {
         alert(data.error || "Có lỗi xảy ra");
       }
@@ -122,13 +122,13 @@ function AlbumManager() {
     .catch(err => alert("Lỗi kết nối server"));
   };
 
-  if (loading && albums.length === 0) return <div style={{ padding: '20px' }}>Đang tải danh sách album...</div>;
+  if (loading && artists.length === 0) return <div style={{ padding: '20px' }}>Đang tải danh sách nghệ sĩ...</div>;
 
   return (
-    <div className="album-manager">
+    <div className="artist-manager">
       <div className="manager-header">
-        <h2>Quản Lý Album</h2>
-        <button className="admin-btn btn-primary" onClick={openAddModal}>+ Thêm Album</button>
+        <h2>Quản Lý Nghệ Sĩ</h2>
+        <button className="admin-btn btn-primary" onClick={openAddModal}>+ Thêm Nghệ Sĩ</button>
       </div>
 
       <div className="admin-card">
@@ -137,29 +137,27 @@ function AlbumManager() {
             <tr>
               <th>ID</th>
               <th>Ảnh</th>
-              <th>Tên Album</th>
-              <th>Nghệ Sĩ</th>
+              <th>Tên Nghệ Sĩ</th>
               <th>Mô Tả</th>
               <th>Hành Động</th>
             </tr>
           </thead>
           <tbody>
-            {albums.length > 0 ? (
-                albums.map(album => (
-                <tr key={album.id}>
-                    <td>#{album.id}</td>
-                    <td><img src={album.imageUrl || 'https://placehold.co/40x40'} alt={album.title} className="album-thumb" /></td>
-                    <td>{album.title}</td>
-                    <td>{album.artists}</td>
-                    <td className="description-cell">{album.description}</td>
-                    <td>
-                    <button className="admin-btn btn-edit" onClick={() => openEditModal(album)}>Sửa</button>
-                    <button className="admin-btn btn-danger" onClick={() => handleDelete(album.id)}>Xóa</button>
-                    </td>
+            {artists.length > 0 ? (
+              artists.map(artist => (
+                <tr key={artist.id}>
+                  <td>#{artist.id}</td>
+                  <td><img src={artist.imageUrl || 'https://placehold.co/50x50'} alt={artist.name} className="artist-avatar" /></td>
+                  <td>{artist.name}</td>
+                  <td className="description-cell">{artist.description}</td>
+                  <td>
+                    <button className="admin-btn btn-edit" onClick={() => openEditModal(artist)}>Sửa</button>
+                    <button className="admin-btn btn-danger" onClick={() => handleDelete(artist.id)}>Xóa</button>
+                  </td>
                 </tr>
-                ))
+              ))
             ) : (
-                <tr><td colSpan="6" style={{textAlign: 'center'}}>Không có dữ liệu album</td></tr>
+              <tr><td colSpan="5" style={{ textAlign: 'center', padding: '20px' }}>Không có dữ liệu nghệ sĩ.</td></tr>
             )}
           </tbody>
         </table>
@@ -177,17 +175,13 @@ function AlbumManager() {
         <div className="modal-overlay">
           <div className="modal-content">
             <div className="modal-header">
-              <h3>{isEditing ? 'Cập Nhật Album' : 'Thêm Album Mới'}</h3>
+              <h3>{isEditing ? 'Cập Nhật Nghệ Sĩ' : 'Thêm Nghệ Sĩ Mới'}</h3>
               <button onClick={() => setShowModal(false)}>×</button>
             </div>
             <form onSubmit={handleSubmit}>
               <div className="form-group">
-                <label>Tên Album (*)</label>
-                <input type="text" name="title" value={formData.title} onChange={handleInputChange} required placeholder="Nhập tên album" />
-              </div>
-              <div className="form-group">
-                <label>Nghệ Sĩ</label>
-                <input type="text" name="artists" value={formData.artists} onChange={handleInputChange} placeholder="Nhập tên nghệ sĩ" />
+                <label>Tên Nghệ Sĩ (*)</label>
+                <input type="text" name="name" value={formData.name} onChange={handleInputChange} required placeholder="Nhập tên nghệ sĩ" />
               </div>
               <div className="form-group">
                 <label>Đường dẫn ảnh</label>
@@ -195,7 +189,7 @@ function AlbumManager() {
               </div>
               <div className="form-group">
                 <label>Mô tả</label>
-                <textarea name="description" value={formData.description} onChange={handleInputChange} placeholder="Nhập mô tả album"></textarea>
+                <textarea name="description" value={formData.description} onChange={handleInputChange} placeholder="Nhập mô tả ngắn về nghệ sĩ"></textarea>
               </div>
               <div className="modal-footer">
                 <button type="button" className="admin-btn btn-secondary" onClick={() => setShowModal(false)}>Hủy</button>
@@ -209,4 +203,4 @@ function AlbumManager() {
   );
 }
 
-export default AlbumManager;
+export default ArtistManager;

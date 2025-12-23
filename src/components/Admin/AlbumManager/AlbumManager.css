@@ -1,0 +1,20 @@
+@import '../AdminManager.css'; /* Import các style chung */
+
+.album-manager {
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+.album-thumb {
+    width: 50px;
+    height: 50px;
+    border-radius: 4px;
+    object-fit: cover;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.description-cell {
+    max-width: 350px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
