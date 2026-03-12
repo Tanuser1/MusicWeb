@@ -4,6 +4,29 @@ import './ArtistManager.css';
 function ArtistManager() {
   const [artists, setArtists] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  // Dữ liệu mẫu (Mock Data)
+  const MOCK_ARTISTS = [
+    { id: 1, name: 'Sơn Tùng M-TP', description: 'Ca sĩ nhạc Pop hàng đầu Việt Nam', imageUrl: 'https://placehold.co/100x100?text=ST' },
+    { id: 2, name: 'Đen Vâu', description: 'Rapper nổi tiếng với lời ca mộc mạc', imageUrl: 'https://placehold.co/100x100?text=Den' },
+    { id: 3, name: 'Mỹ Tâm', description: 'Họa mi tóc nâu', imageUrl: 'https://placehold.co/100x100?text=MyTam' },
+    { id: 4, name: 'Binz', description: 'Rapper Bad boy', imageUrl: 'https://placehold.co/100x100?text=Binz' },
+    { id: 5, name: 'JustaTee', description: 'Ông hoàng Melody', imageUrl: 'https://placehold.co/100x100?text=JayTee' },
+    { id: 6, name: 'Đông Nhi', description: 'Nữ ca sĩ đa tài, hoàng hậu của V-Pop', imageUrl: 'https://placehold.co/100x100?text=DongNhi' },
+    { id: 7, name: 'Noo Phước Thịnh', description: 'Nam ca sĩ ballad ngọt ngào', imageUrl: 'https://placehold.co/100x100?text=Noo' },
+    { id: 8, name: 'Erik', description: 'Prince of V-Pop - Ca sĩ trẻ tài năng', imageUrl: 'https://placehold.co/100x100?text=Erik' },
+    { id: 9, name: 'Hương Tràm', description: 'Giọng ca vàng của The Voice', imageUrl: 'https://placehold.co/100x100?text=HuongTram' },
+    { id: 10, name: 'Bích Phương', description: 'Nữ hoàng nhạc dance Việt Nam', imageUrl: 'https://placehold.co/100x100?text=BichPhuong' },
+  
+    { id: 11, name: 'Trịnh Thăng Bình', description: 'Ông hoàng ballad lãng mạn', imageUrl: 'https://placehold.co/100x100?text=TTB' },
+    { id: 12, name: 'Tóc Tiên', description: 'Nữ ca sĩ sexy & năng động', imageUrl: 'https://placehold.co/100x100?text=TocTien' },
+    { id: 13, name: 'Isaac', description: 'Thành viên 365 - Ca sĩ đa năng', imageUrl: 'https://placehold.co/100x100?text=Isaac' },
+    { id: 14, name: 'Karik', description: 'Rapper & ca sĩ có chất riêng', imageUrl: 'https://placehold.co/100x100?text=Karik' },
+    { id: 15, name: 'Suboi', description: 'Nữ rapper tiên phong của Việt Nam', imageUrl: 'https://placehold.co/100x100?text=Suboi' },
+  
+  
+  ];
+
   const [showModal, setShowModal] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editingId, setEditingId] = useState(null);
@@ -26,24 +49,42 @@ function ArtistManager() {
     fetch(`http://localhost:5001/api/admin/artists?page=${page}&limit=${limit}`, {
       headers: { 'Authorization': `Bearer ${token}` }
     })
-    .then(res => res.json())
+    .then(res => {
+        if (!res.ok) throw new Error("Failed to fetch");
+        return res.json();
+    })
     .then(response => {
+      // Hàm xử lý dữ liệu nghệ sĩ (Map avatar -> imageUrl, bio -> description)
+      const processArtist = (artist) => ({
+          ...artist,
+          // Ưu tiên imageUrl nếu có, nếu không dùng avatar từ DB
+          imageUrl: (artist.imageUrl || artist.avatar) 
+            ? ((artist.imageUrl || artist.avatar).startsWith('http') 
+                ? (artist.imageUrl || artist.avatar) 
+                : `http://localhost:5001/api/image/avatar/${artist.imageUrl || artist.avatar}`) 
+            : null,
+          description: artist.description || artist.bio // Map trường bio từ DB sang description
+      });
+
       if (response.data && Array.isArray(response.data)) {
-        setArtists(response.data);
+        setArtists(response.data.map(processArtist));
         if (response.pagination) {
           setTotalPages(response.pagination.totalPages);
           setCurrentPage(response.pagination.page);
         }
       } else if (Array.isArray(response)) {
         // Fallback nếu API trả về một mảng trực tiếp không có phân trang
-        setArtists(response);
+        setArtists(response.map(processArtist));
         setTotalPages(1);
         setCurrentPage(1);
       } else {
         setArtists([]); // Đảm bảo artists là một mảng nếu API trả về lỗi
       }
     })
-    .catch(err => console.error("Lỗi khi tải danh sách nghệ sĩ:", err))
+    .catch(err => {
+        console.error("Lỗi khi tải danh sách nghệ sĩ, sử dụng Mock Data:", err);
+        setArtists(MOCK_ARTISTS);
+    })
     .finally(() => setLoading(false));
   };
 

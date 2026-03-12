@@ -82,6 +82,25 @@ const authenticateToken = (req, res, next) => {
   });
 };
 
+// API Dashboard Stats (Thống kê cho Admin)
+app.get('/api/admin/dashboard-stats', authenticateToken, async (req, res) => {
+    try {
+        const [songs] = await pool.execute('SELECT COUNT(*) as count FROM baihat');
+        const [albums] = await pool.execute('SELECT COUNT(*) as count FROM album');
+        const [users] = await pool.execute('SELECT COUNT(*) as count FROM nguoidung');
+        const [revenue] = await pool.execute("SELECT SUM(TongTien) as total FROM hoadon WHERE TrangThai = 'paid'");
+
+        res.json({
+            totalSongs: songs[0].count,
+            totalAlbums: albums[0].count,
+            totalUsers: users[0].count,
+            totalRevenue: revenue[0].total || 0
+        });
+    } catch (error) {
+        console.error("Dashboard stats error:", error);
+        res.status(500).json({ error: 'Lỗi server lấy thống kê' });
+    }
+});
 
 
 app.use('/api/admin', authenticateToken, adminRoutes);
@@ -204,10 +223,19 @@ app.post('/api/login', async (req, res) => {
         id: user.NguoiDungID,
         username: user.TenDangNhap,
         email: user.Email,
-        displayName: user.HoVaTen || user.TenDangNhap, 
-        avatar: user.AnhDaiDien 
-          ? (user.AnhDaiDien.startsWith('http') ? user.AnhDaiDien : `${BASE_URL}/uploads/${user.AnhDaiDien}`)
-          : `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.TenDangNhap}`,
+        displayName: user.HoVaTen || user.TenDangNhap,
+        avatar: (() => {
+          if (!user.AnhDaiDien) {
+            // Nếu không có avatar, dùng ảnh mặc định từ Dicebear
+            return `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.TenDangNhap}`;
+          }
+          if (user.AnhDaiDien.startsWith('http')) {
+            // Nếu là link ngoài (Google, Facebook), giữ nguyên
+            return user.AnhDaiDien;
+          }
+          // Nếu là ảnh đã upload, tạo URL đúng tới API phục vụ ảnh
+          return `${BASE_URL}/api/image/avatar/${path.basename(user.AnhDaiDien)}`;
+        })(),
         role: role // Trả về role cho frontend
       }
     });

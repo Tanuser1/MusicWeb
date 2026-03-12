@@ -38,64 +38,38 @@ function Dashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchDashboardData = async () => {
+    // 1. Gọi API lấy số liệu thống kê thật
+    const fetchStats = async () => {
       try {
-        const token = localStorage.getItem("token");
-        if (!token) {
-          console.warn("Không tìm thấy token!");
-          setLoading(false);
-          return;
-        }
-
-        const [statsRes, chartsRes] = await Promise.all([
-          fetch("http://localhost:5001/api/admin/stats", {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-          fetch("http://localhost:5001/api/admin/dashboard-charts?months=12", {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-        ]);
-
-        if (statsRes.ok) {
-          const statsData = await statsRes.json();
-          setStats(statsData);
-        }
-
-        if (chartsRes.ok) {
-          const chartData = await chartsRes.json();
-          console.log("Dữ liệu nhận được từ MySQL:", chartData);
-
-          // Xử lý dữ liệu Doanh thu
-          let revLabels = chartData?.revenue?.labels || [];
-          let revValues = chartData?.revenue?.values || [];
-
-          // Xử lý dữ liệu Người dùng
-          let userLabels = chartData?.users?.labels || [];
-          let userValues = chartData?.users?.values || [];
-
-          // --- LOGIC HIỂN THỊ DỮ LIỆU ---
-          // Nếu cả 2 đều rỗng mới hiện Fake Data để bạn biết là chưa lấy được dữ liệu thật
-          if (revLabels.length === 0 && userLabels.length === 0) {
-            console.warn("Database rỗng hoặc không khớp điều kiện! Hiển thị Fake Data.");
-            revLabels = ["Tháng 10", "Tháng 11", "Tháng 12"];
-            revValues = [500000, 1200000, 850000];
-            userLabels = ["Tháng 10", "Tháng 11", "Tháng 12"];
-            userValues = [10, 25, 15];
-          }
-
-          setCharts({
-            revenue: { labels: revLabels, values: revValues },
-            users: { labels: userLabels, values: userValues },
-          });
+        const token = localStorage.getItem('token');
+        const response = await fetch('http://localhost:5001/api/admin/dashboard-stats', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setStats(data);
         }
       } catch (error) {
-        console.error("Lỗi kết nối API:", error);
-      } finally {
-        setLoading(false);
+        console.error("Lỗi khi lấy thống kê dashboard:", error);
       }
     };
+    fetchStats();
 
-    fetchDashboardData();
+    // 2. Giữ nguyên Mock Data cho biểu đồ (Charts)
+    const MOCK_CHARTS = {
+      revenue: {
+        labels: ["Tháng 1", "Tháng 2", "Tháng 3", "Tháng 4", "Tháng 5", "Tháng 6", "Tháng 7", "Tháng 8", "Tháng 9", "Tháng 10", "Tháng 11", "Tháng 12"],
+        values: [0, 0, 0, 0, 0, 0, 0, 0, 5000000, 4500000, 6000000, 5500000],
+      },
+      users: {
+        labels: ["Tháng 1", "Tháng 2", "Tháng 3", "Tháng 4", "Tháng 5", "Tháng 6", "Tháng 7", "Tháng 8", "Tháng 9", "Tháng 10", "Tháng 11", "Tháng 12"],
+        values: [0,0,0,0,0,0,0,0, 0,75, 70, 90, 85],
+      },
+    };
+
+   
+    setCharts(MOCK_CHARTS);
+    setLoading(false);
   }, []);
 
   const formatCurrency = (amount) => {
