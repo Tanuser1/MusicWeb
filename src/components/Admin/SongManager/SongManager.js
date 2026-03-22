@@ -18,7 +18,8 @@ function SongManager() {
     title: '',
     artist: '', 
     audioUrl: '',
-    imageUrl: ''
+    imageUrl: '',
+    albumId: ''
   });
 
 const fetchSongs = (page = 1) => {
@@ -83,7 +84,7 @@ const fetchSongs = (page = 1) => {
   // Mở modal để thêm mới
   const openAddModal = () => {
       setIsEditing(false);
-      setFormData({ title: '', artist: '', audioUrl: '', imageUrl: '' });
+      setFormData({ title: '', artist: '', audioUrl: '', imageUrl: '', albumId: '' });
       setShowModal(true);
   };
 
@@ -97,7 +98,8 @@ const fetchSongs = (page = 1) => {
           title: song.title,
           artist: song.artists || '', // corrected usage
           audioUrl: song.audioUrl || '',
-          imageUrl: song.imageUrl || ''
+          imageUrl: song.imageUrl || '',
+          albumId: song.albumId || ''
       });
       setShowModal(true);
   };
@@ -284,6 +286,16 @@ const fetchSongs = (page = 1) => {
                             value={formData.imageUrl} 
                             onChange={handleInputChange} 
                             placeholder="Link file ảnh .jpg/.png hoặc tên file"
+                          />
+                      </div>
+                      <div className="form-group">
+                          <label>ID Album (Nếu có)</label>
+                          <input 
+                            type="number" 
+                            name="albumId" 
+                            value={formData.albumId} 
+                            onChange={handleInputChange} 
+                            placeholder="Nhập ID Album"
                           />
                       </div>
                       <div className="modal-footer">

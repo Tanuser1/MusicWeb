@@ -23,7 +23,7 @@ function AdminLayout({ children, currentView, onNavigate, onLogout }) {
             onClick={() => onNavigate('dashboard')}
           >
             <IoHomeOutline />
-            <span>Dashboard</span>
+            <span>Tổng quát</span>
           </li>
           
           <li 

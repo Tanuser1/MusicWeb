@@ -3,7 +3,7 @@ const cors = require('cors');
 const path = require('path');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const pool = require('./db'); // Đảm bảo file db.js đã được cấu hình đúng
+const pool = require('./db'); // cấu hình đúng db.js 
 const adminRoutes = require('./routes/admin'); 
 
 const app = express();
@@ -17,9 +17,8 @@ const fs = require('fs');
 app.use(cors());
 app.use(express.json());
 
-// =======================================================
 // 1. CÁC TUYẾN ĐƯỜNG PHỤC VỤ FILE (STATIC FILES)
-// =======================================================
+
 app.use('/uploads', express.static(path.join(__dirname, '../public')));
 
 
@@ -64,7 +63,7 @@ const upload = multer({
 
 
 // 1. MIDDLEWARE XÁC THỰC (KHAI BÁO TRƯỚC KHI DÙNG)
-// =======================================================
+
 const authenticateToken = (req, res, next) => {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
@@ -105,9 +104,8 @@ app.get('/api/admin/dashboard-stats', authenticateToken, async (req, res) => {
 
 app.use('/api/admin', authenticateToken, adminRoutes);
 
-// =======================================================
 // 1.1 API PHỤC VỤ FILE ẢNH VÀ AUDIO
-// =======================================================
+
 // Phục vụ file audio
 app.get('/api/audio/:filename', (req, res) => {
   const { filename } = req.params;
@@ -164,12 +162,7 @@ app.get('/api/image/avatar/:filename', (req, res) => {
     serveFile(res, filePath);
 });
 
-// =======================================================
-
-
-// =======================================================
-// 2. API ĐĂNG NHẬP (LOGIN) - CẬP NHẬT THEO DB MỚI
-// =======================================================
+// 2. API ĐĂNG NHẬP (LOGIN) 
 app.post('/api/login', async (req, res) => {
   try {
     const { email, password } = req.body; 
@@ -233,8 +226,9 @@ app.post('/api/login', async (req, res) => {
             // Nếu là link ngoài (Google, Facebook), giữ nguyên
             return user.AnhDaiDien;
           }
-          // Nếu là ảnh đã upload, tạo URL đúng tới API phục vụ ảnh
-          return `${BASE_URL}/api/image/avatar/${path.basename(user.AnhDaiDien)}`;
+          
+          // Nếu là đường dẫn tương đối (ảnh đã upload vào hệ thống)
+          return `${BASE_URL}/api/image/avatar/${user.AnhDaiDien.split('/').pop()}`;
         })(),
         role: role // Trả về role cho frontend
       }
@@ -246,7 +240,6 @@ app.post('/api/login', async (req, res) => {
   }
 });
 // API ĐĂNG KÝ (REGISTER)
-// =======================================================
 app.post('/api/register', async (req, res) => {
   try {
     const { username, email, password, displayName } = req.body;
@@ -284,9 +277,8 @@ app.post('/api/register', async (req, res) => {
     res.status(500).json({ error: 'Lỗi server: ' + error.message });
   }
 });
-// =======================================================
+
 // 3. CÁC API DỮ LIỆU (CÔNG KHAI)
-// =======================================================
 
 // Gợi ý
 app.get('/api/suggestions', async (req, res) => {
@@ -399,7 +391,6 @@ app.get('/api/albums', async (req, res) => {
             LEFT JOIN nghesi n ON an.NgheSiID = n.NgheSiID
             GROUP BY a.AlbumID
             ORDER BY a.NgayPhatHanh DESC
-            LIMIT 5
         `);
         const data = rows.map(row => ({
             ...row,
@@ -467,9 +458,7 @@ app.get('/api/partners', (req, res) => {
     ]);
 });
 
-// =======================================================
 // 4. API NGƯỜI DÙNG (CẦN TOKEN - AUTHENTICATED)
-// =======================================================
 
 // Lấy danh sách yêu thích
 // Lấy danh sách yêu thích (Đã sửa lỗi SQL mode & dùng LEFT JOIN)
@@ -478,8 +467,7 @@ app.get('/api/favorites', authenticateToken, async (req, res) => {
     const userId = req.user.userId;
     
     // SỬA: 
-    // 1. Dùng LEFT JOIN để không bị mất bài hát nếu lỡ thiếu thông tin nghệ sĩ
-    // 2. Thêm các cột vào GROUP BY để tránh lỗi 'ONLY_FULL_GROUP_BY' trên MySQL mới
+
     const [rows] = await pool.execute(`
       SELECT b.BaiHatID as id, 
              b.TieuDe as title, 
@@ -578,9 +566,6 @@ app.get('/api/playlists', authenticateToken, async (req, res) => {
   try {
     const userId = req.user.userId;
 
-    // SỬA: 
-    // - Cột 'Ten' thay vì 'TenDanhSach'
-    // - Bỏ 'AnhBia' vì bảng không có
     const [rows] = await pool.execute(`
       SELECT DanhSachID as id, Ten as name, MoTa as description,
              NgayTao as createdAt
@@ -753,9 +738,7 @@ app.post('/api/history', authenticateToken, async (req, res) => {
   }
 });
 
-// =======================================================
 // 5. API QUẢNG CÁO & KIỂM TRA QUYỀN (MỚI)
-// =======================================================
 // API Kiểm tra trạng thái gói cước (Đã nâng cấp)
 app.get('/api/user/subscription', authenticateToken, async (req, res) => {
   try {
@@ -863,7 +846,6 @@ app.get('/api/ads/random', async (req, res) => {
   }
 });
 // API GÓI CƯỚC & THANH TOÁN (VIP)
-// =======================================================
 
 // 1. Lấy danh sách gói cước VIP để hiển thị
 app.get('/api/vip-packages', async (req, res) => {

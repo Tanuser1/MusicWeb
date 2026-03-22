@@ -59,11 +59,11 @@ function Dashboard() {
     const MOCK_CHARTS = {
       revenue: {
         labels: ["Tháng 1", "Tháng 2", "Tháng 3", "Tháng 4", "Tháng 5", "Tháng 6", "Tháng 7", "Tháng 8", "Tháng 9", "Tháng 10", "Tháng 11", "Tháng 12"],
-        values: [0, 0, 0, 0, 0, 0, 0, 0, 5000000, 4500000, 6000000, 5500000],
+        values: [100000, 200000, 0, 0, 0, 0, 0, 0, 550000, 450000, 600000, 550000],
       },
       users: {
         labels: ["Tháng 1", "Tháng 2", "Tháng 3", "Tháng 4", "Tháng 5", "Tháng 6", "Tháng 7", "Tháng 8", "Tháng 9", "Tháng 10", "Tháng 11", "Tháng 12"],
-        values: [0,0,0,0,0,0,0,0, 0,75, 70, 90, 85],
+        values: [3,10,0,0,0,0,0,0, 0,15, 20, 30, 45],
       },
     };
 

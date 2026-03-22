@@ -5,30 +5,7 @@ function ArtistManager() {
   const [artists, setArtists] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Dữ liệu mẫu (Mock Data)
-  const MOCK_ARTISTS = [
-    { id: 1, name: 'Sơn Tùng M-TP', description: 'Ca sĩ nhạc Pop hàng đầu Việt Nam', imageUrl: 'https://placehold.co/100x100?text=ST' },
-    { id: 2, name: 'Đen Vâu', description: 'Rapper nổi tiếng với lời ca mộc mạc', imageUrl: 'https://placehold.co/100x100?text=Den' },
-    { id: 3, name: 'Mỹ Tâm', description: 'Họa mi tóc nâu', imageUrl: 'https://placehold.co/100x100?text=MyTam' },
-    { id: 4, name: 'Binz', description: 'Rapper Bad boy', imageUrl: 'https://placehold.co/100x100?text=Binz' },
-    { id: 5, name: 'JustaTee', description: 'Ông hoàng Melody', imageUrl: 'https://placehold.co/100x100?text=JayTee' },
-    { id: 6, name: 'Đông Nhi', description: 'Nữ ca sĩ đa tài, hoàng hậu của V-Pop', imageUrl: 'https://placehold.co/100x100?text=DongNhi' },
-    { id: 7, name: 'Noo Phước Thịnh', description: 'Nam ca sĩ ballad ngọt ngào', imageUrl: 'https://placehold.co/100x100?text=Noo' },
-    { id: 8, name: 'Erik', description: 'Prince of V-Pop - Ca sĩ trẻ tài năng', imageUrl: 'https://placehold.co/100x100?text=Erik' },
-    { id: 9, name: 'Hương Tràm', description: 'Giọng ca vàng của The Voice', imageUrl: 'https://placehold.co/100x100?text=HuongTram' },
-    { id: 10, name: 'Bích Phương', description: 'Nữ hoàng nhạc dance Việt Nam', imageUrl: 'https://placehold.co/100x100?text=BichPhuong' },
-  
-    { id: 11, name: 'Trịnh Thăng Bình', description: 'Ông hoàng ballad lãng mạn', imageUrl: 'https://placehold.co/100x100?text=TTB' },
-    { id: 12, name: 'Tóc Tiên', description: 'Nữ ca sĩ sexy & năng động', imageUrl: 'https://placehold.co/100x100?text=TocTien' },
-    { id: 13, name: 'Isaac', description: 'Thành viên 365 - Ca sĩ đa năng', imageUrl: 'https://placehold.co/100x100?text=Isaac' },
-    { id: 14, name: 'Karik', description: 'Rapper & ca sĩ có chất riêng', imageUrl: 'https://placehold.co/100x100?text=Karik' },
-    { id: 15, name: 'Suboi', description: 'Nữ rapper tiên phong của Việt Nam', imageUrl: 'https://placehold.co/100x100?text=Suboi' },
-  
-  
-  ];
-
   const [showModal, setShowModal] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
   const [editingId, setEditingId] = useState(null);
 
   // State phân trang
@@ -81,10 +58,6 @@ function ArtistManager() {
         setArtists([]); // Đảm bảo artists là một mảng nếu API trả về lỗi
       }
     })
-    .catch(err => {
-        console.error("Lỗi khi tải danh sách nghệ sĩ, sử dụng Mock Data:", err);
-        setArtists(MOCK_ARTISTS);
-    })
     .finally(() => setLoading(false));
   };
 
@@ -114,14 +87,7 @@ function ArtistManager() {
     }
   };
 
-  const openAddModal = () => {
-    setIsEditing(false);
-    setFormData({ name: '', imageUrl: '', description: '' });
-    setShowModal(true);
-  };
-
   const openEditModal = (artist) => {
-    setIsEditing(true);
     setEditingId(artist.id);
     setFormData({
       name: artist.name || '',
@@ -139,8 +105,8 @@ function ArtistManager() {
   const handleSubmit = (e) => {
     e.preventDefault();
     const token = localStorage.getItem('token');
-    const url = isEditing ? `http://localhost:5001/api/admin/artists/${editingId}` : 'http://localhost:5001/api/admin/artists';
-    const method = isEditing ? 'PUT' : 'POST';
+    const url = `http://localhost:5001/api/admin/artists/${editingId}`;
+    const method = 'PUT';
 
     fetch(url, {
       method: method,
@@ -153,7 +119,7 @@ function ArtistManager() {
     .then(res => res.json())
     .then(data => {
       if (data.message || data.id) {
-        alert(isEditing ? "Cập nhật thành công!" : "Thêm nghệ sĩ thành công!");
+        alert("Cập nhật thành công!");
         setShowModal(false);
         fetchArtists(currentPage);
       } else {
@@ -169,7 +135,6 @@ function ArtistManager() {
     <div className="artist-manager">
       <div className="manager-header">
         <h2>Quản Lý Nghệ Sĩ</h2>
-        <button className="admin-btn btn-primary" onClick={openAddModal}>+ Thêm Nghệ Sĩ</button>
       </div>
 
       <div className="admin-card">
@@ -216,7 +181,7 @@ function ArtistManager() {
         <div className="modal-overlay">
           <div className="modal-content">
             <div className="modal-header">
-              <h3>{isEditing ? 'Cập Nhật Nghệ Sĩ' : 'Thêm Nghệ Sĩ Mới'}</h3>
+              <h3>Cập Nhật Nghệ Sĩ</h3>
               <button onClick={() => setShowModal(false)}>×</button>
             </div>
             <form onSubmit={handleSubmit}>
@@ -234,7 +199,7 @@ function ArtistManager() {
               </div>
               <div className="modal-footer">
                 <button type="button" className="admin-btn btn-secondary" onClick={() => setShowModal(false)}>Hủy</button>
-                <button type="submit" className="admin-btn btn-primary">{isEditing ? 'Cập Nhật' : 'Thêm Mới'}</button>
+                <button type="submit" className="admin-btn btn-primary">Cập Nhật</button>
               </div>
             </form>
           </div>

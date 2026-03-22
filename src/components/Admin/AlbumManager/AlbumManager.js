@@ -5,32 +5,6 @@ function AlbumManager() {
   const [albums, setAlbums] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Dữ liệu mẫu (Mock Data) dùng khi không kết nối được API
-  const MOCK_ALBUMS = [
-    { id: 1, title: 'Chúng Ta Của Hiện Tại', artists: 'Sơn Tùng M-TP', releaseDate: '2020-12-20', imageUrl: 'https://placehold.co/100x100?text=ST', description: 'Album hot 2020' },
-    { id: 2, title: 'Hoàng', artists: 'Hoàng Thùy Linh', releaseDate: '2019-10-20', imageUrl: 'https://placehold.co/100x100?text=Hoang', description: 'Album văn học' },
-    { id: 3, title: 'Tâm 9', artists: 'Mỹ Tâm', releaseDate: '2017-12-03', imageUrl: 'https://placehold.co/100x100?text=Tam9', description: 'Tâm 9' },
-    { id: 4, title: 'DreAMEE', artists: 'AMEE', releaseDate: '2020-06-28', imageUrl: 'https://placehold.co/100x100?text=AMEE', description: 'Album đầu tay' },
-    { id: 5, title: 'Gieo', artists: 'Ngọt', releaseDate: '2022-01-01', imageUrl: 'https://placehold.co/100x100?text=Gieo', description: 'Gieo' },
-      { id: 6, title: '1997', artists: 'Binz', releaseDate: '2019-06-15', imageUrl: 'https://placehold.co/100x100?text=1997', description: 'Album rap debut cá tính' },
-  { id: 7, title: 'Lối Cũ', artists: 'Đen Vâu', releaseDate: '2020-04-20', imageUrl: 'https://placehold.co/100x100?text=LoiCu', description: 'Rap mộc mạc sâu sắc' },
-  { id: 8, title: 'Bùa Yêu', artists: 'Bích Phương', releaseDate: '2019-10-10', imageUrl: 'https://placehold.co/100x100?text=BuaYeu', description: 'Pop dance bùng nổ' },
-  { id: 9, title: 'The First', artists: 'Erik', releaseDate: '2020-12-25', imageUrl: 'https://placehold.co/100x100?text=Erik', description: 'Prince of V-Pop' },
-  { id: 10, title: 'Mười Năm', artists: 'Noo Phước Thịnh', releaseDate: '2018-11-11', imageUrl: 'https://placehold.co/100x100?text=Noo', description: 'Ballad ngọt ngào 10 năm' },
-
-  { id: 11, title: 'Có Chắc Yêu Là Đây', artists: 'Trịnh Thăng Bình', releaseDate: '2020-08-08', imageUrl: 'https://placehold.co/100x100?text=CCYLD', description: 'Tình yêu lãng mạn' },
-  { id: 12, title: 'NO-NÊ', artists: 'Suboi', releaseDate: '2021-09-09', imageUrl: 'https://placehold.co/100x100?text=Suboi', description: 'Rap nữ tiên phong' },
-  { id: 13, title: 'Queen', artists: 'Tóc Tiên', releaseDate: '2018-05-05', imageUrl: 'https://placehold.co/100x100?text=TocTien', description: 'Pop sexy & năng động' },
-  { id: 14, title: 'LINK', artists: 'Hoàng Thùy Linh', releaseDate: '2022-03-03', imageUrl: 'https://placehold.co/100x100?text=HTL', description: 'Album mới lạ 2022' },
-  { id: 15, title: 'Multiverse', artists: 'Tùng Dương', releaseDate: '2024-11-01', imageUrl: 'https://placehold.co/100x100?text=TD', description: 'Đa vũ trụ âm nhạc' },
-
-  { id: 16, title: 'Vũ.', artists: 'Vũ.', releaseDate: '2021-03-03', imageUrl: 'https://placehold.co/100x100?text=Vu', description: 'Indie ballad cảm xúc' },
-  { id: 17, title: 'Made In Vietnam', artists: 'Hòa Minzy', releaseDate: '2025-01-15', imageUrl: 'https://placehold.co/100x100?text=HM', description: 'Hòa quyện dân ca & EDM' },
-  { id: 18, title: 'Karik', artists: 'Karik', releaseDate: '2022-05-05', imageUrl: 'https://placehold.co/100x100?text=Karik', description: 'Rap chất riêng' },
-  { id: 19, title: 'Isaac', artists: 'Isaac', releaseDate: '2023-04-04', imageUrl: 'https://placehold.co/100x100?text=Isaac', description: 'Từ nhóm 365' },
-  { id: 20, title: 'Min', artists: 'Min', releaseDate: '2022-02-02', imageUrl: 'https://placehold.co/100x100?text=Min', description: 'Pop cá tính & sexy' },
-  ];
-
   const [showModal, setShowModal] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editingId, setEditingId] = useState(null);
@@ -82,7 +56,6 @@ function AlbumManager() {
     })
     .catch(err => {
         console.error("Lỗi khi tải danh sách album, sử dụng Mock Data:", err);
-        setAlbums(MOCK_ALBUMS);
     })
     .finally(() => setLoading(false));
   };

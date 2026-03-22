@@ -58,7 +58,8 @@ router.get('/songs', async (req, res) => {
                    b.DuongDanAudio as audioUrl,
                    GROUP_CONCAT(n.TenNgheSi SEPARATOR ', ') as artists,
                    b.LuotPhat as listenCount, b.LuotThich as likeCount,
-                   b.NgayPhatHanh as releaseDate
+                   b.NgayPhatHanh as releaseDate,
+                   b.AlbumID as albumId
             FROM baihat b
             LEFT JOIN baihat_nghesi bn ON b.BaiHatID = bn.BaiHatID
             LEFT JOIN nghesi n ON bn.NgheSiID = n.NgheSiID
@@ -88,15 +89,15 @@ router.get('/songs', async (req, res) => {
 
 // Thêm bài hát mới
 router.post('/songs', async (req, res) => {
-    const { title, artist, audioUrl, imageUrl } = req.body;
+    const { title, artist, audioUrl, imageUrl, albumId } = req.body;
     if (!title || !audioUrl) return res.status(400).json({ error: "Thiếu thông tin bắt buộc" });
 
     const connection = await pool.getConnection();
     try {
         await connection.beginTransaction();
         const [songResult] = await connection.execute(
-            'INSERT INTO baihat (TieuDe, DuongDanAudio, AnhBiaBaiHat, NgayPhatHanh) VALUES (?, ?, ?, NOW())',
-            [title, audioUrl, imageUrl || null]
+            'INSERT INTO baihat (TieuDe, DuongDanAudio, AnhBiaBaiHat, NgayPhatHanh, AlbumID) VALUES (?, ?, ?, NOW(), ?)',
+            [title, audioUrl, imageUrl || null, albumId || null]
         );
         const songId = songResult.insertId;
 
@@ -120,14 +121,14 @@ router.post('/songs', async (req, res) => {
 // Sửa bài hát
 router.put('/songs/:id', async (req, res) => {
     const songId = req.params.id;
-    const { title, artist, audioUrl, imageUrl } = req.body;
+    const { title, artist, audioUrl, imageUrl, albumId } = req.body;
 
     const connection = await pool.getConnection();
     try {
         await connection.beginTransaction();
         await connection.execute(
-            'UPDATE baihat SET TieuDe = ?, DuongDanAudio = ?, AnhBiaBaiHat = ? WHERE BaiHatID = ?',
-            [title, audioUrl, imageUrl || null, songId]
+            'UPDATE baihat SET TieuDe = ?, DuongDanAudio = ?, AnhBiaBaiHat = ?, AlbumID = ? WHERE BaiHatID = ?',
+            [title, audioUrl, imageUrl || null, albumId || null, songId]
         );
 
         await connection.execute('DELETE FROM baihat_nghesi WHERE BaiHatID = ?', [songId]);
@@ -157,37 +158,27 @@ router.delete('/songs/:id', async (req, res) => {
     }
 });
 
-// ==========================================
+
 // 4. API QUẢN LÝ NGHỆ SĨ
-// ==========================================
-// Ở đây tôi triển khai trực tiếp SQL để đồng bộ với phần Bài hát. 
-// Nếu bạn muốn dùng Controller, hãy import và gọi: artistController.getAllArtists
 
 router.get('/artists', async (req, res) => {
     try {
-        const [rows] = await pool.execute('SELECT NgheSiID as id, TenNgheSi as name, TieuSu as bio, AnhDaiDien as avatar FROM nghesi ORDER BY TenNgheSi ASC');
+        const [rows] = await pool.execute('SELECT NgheSiID as id, TenNgheSi as name, TieuSu as bio, AnhDaiDien as avatar FROM nghesi ORDER BY NgheSiID ASC');
         res.json(rows);
     } catch (error) {
         res.status(500).json({ error: "Lỗi lấy danh sách nghệ sĩ" });
     }
 });
 
-router.post('/artists', async (req, res) => {
-    const { name, bio, avatar } = req.body;
-    try {
-        const [result] = await pool.execute('INSERT INTO nghesi (TenNgheSi, TieuSu, AnhDaiDien) VALUES (?, ?, ?)', [name, bio, avatar]);
-        res.json({ message: "Thêm nghệ sĩ thành công", id: result.insertId });
-    } catch (error) {
-        res.status(500).json({ error: "Lỗi thêm nghệ sĩ" });
-    }
-});
 
 router.put('/artists/:id', async (req, res) => {
-    const { name, bio, avatar } = req.body;
+    const { name, description, imageUrl } = req.body;
     try {
-        await pool.execute('UPDATE nghesi SET TenNgheSi = ?, TieuSu = ?, AnhDaiDien = ? WHERE NgheSiID = ?', [name, bio, avatar, req.params.id]);
+        await pool.execute('UPDATE nghesi SET TenNgheSi = ?, TieuSu = ?, AnhDaiDien = ? WHERE NgheSiID = ?', 
+        [name, description || null, imageUrl || null, req.params.id]);
         res.json({ message: "Cập nhật nghệ sĩ thành công" });
     } catch (error) {
+        console.error("Lỗi khi cập nhật nghệ sĩ:", error);
         res.status(500).json({ error: "Lỗi cập nhật nghệ sĩ" });
     }
 });
@@ -201,15 +192,124 @@ router.delete('/artists/:id', async (req, res) => {
     }
 });
 
-// ==========================================
-// 5. API QUẢN LÝ NGƯỜI DÙNG
-// ==========================================
+// 5. API QUẢN LÝ ALBUM
+
+// Lấy danh sách album (Phân trang)
+router.get('/albums', async (req, res) => {
+    try {
+        let page = parseInt(req.query.page, 10) || 1;
+        let limit = parseInt(req.query.limit, 10) || 10;
+        const offset = (page - 1) * limit;
+
+        const sql = `
+            SELECT a.AlbumID as id, a.TieuDe as title, a.AnhBia as imageUrl,
+                   a.NgayPhatHanh as releaseDate,
+                   GROUP_CONCAT(n.TenNgheSi SEPARATOR ', ') as artists
+            FROM album a
+            LEFT JOIN album_nghesi an ON a.AlbumID = an.AlbumID
+            LEFT JOIN nghesi n ON an.NgheSiID = n.NgheSiID
+            GROUP BY a.AlbumID, a.TieuDe, a.AnhBia, a.NgayPhatHanh
+            ORDER BY a.AlbumID DESC
+            LIMIT ${limit} OFFSET ${offset}
+        `;
+        const [rows] = await pool.execute(sql);
+
+        const updatedRows = rows.map(album => ({
+            ...album,
+            imageUrl: album.imageUrl ? `${BASE_URL}/api/image/album/${album.imageUrl}` : null
+        }));
+
+        const [countResult] = await pool.execute('SELECT COUNT(*) as total FROM album');
+        const totalAlbums = countResult[0].total;
+
+        res.json({
+            data: updatedRows,
+            pagination: { page, limit, totalAlbums, totalPages: Math.ceil(totalAlbums / limit) }
+        });
+    } catch (error) {
+        console.error("Error fetching albums:", error);
+        res.status(500).json({ error: "Lỗi khi lấy danh sách album" });
+    }
+});
+
+// Thêm album mới
+router.post('/albums', async (req, res) => {
+    const { title, artist, imageUrl, releaseDate } = req.body;
+    if (!title) return res.status(400).json({ error: "Thiếu tiêu đề album" });
+
+    const connection = await pool.getConnection();
+    try {
+        await connection.beginTransaction();
+        const [albumResult] = await connection.execute(
+            'INSERT INTO album (TieuDe, AnhBia, NgayPhatHanh) VALUES (?, ?, ?)',
+            [title, imageUrl || null, releaseDate || null]
+        );
+        const albumId = albumResult.insertId;
+
+        if (artist && artist.trim() !== '') {
+            const artistName = artist.trim();
+            const [artistRows] = await connection.execute('SELECT NgheSiID FROM nghesi WHERE TenNgheSi = ?', [artistName]);
+            let artistId = artistRows.length > 0 ? artistRows[0].NgheSiID : (await connection.execute('INSERT INTO nghesi (TenNgheSi) VALUES (?)', [artistName]))[0].insertId;
+            await connection.execute('INSERT INTO album_nghesi (AlbumID, NgheSiID) VALUES (?, ?)', [albumId, artistId]);
+        }
+
+        await connection.commit();
+        res.json({ message: "Thêm album thành công", id: albumId });
+    } catch (error) {
+        await connection.rollback();
+        res.status(500).json({ error: error.message });
+    } finally {
+        connection.release();
+    }
+});
+
+// Sửa album
+router.put('/albums/:id', async (req, res) => {
+    const albumId = req.params.id;
+    const { title, artist, imageUrl, releaseDate } = req.body;
+
+    const connection = await pool.getConnection();
+    try {
+        await connection.beginTransaction();
+        await connection.execute(
+            'UPDATE album SET TieuDe = ?, AnhBia = ?, NgayPhatHanh = ? WHERE AlbumID = ?',
+            [title, imageUrl || null, releaseDate || null, albumId]
+        );
+
+        await connection.execute('DELETE FROM album_nghesi WHERE AlbumID = ?', [albumId]);
+        if (artist && artist.trim() !== '') {
+            const [artistRows] = await connection.execute('SELECT NgheSiID FROM nghesi WHERE TenNgheSi = ?', [artist.trim()]);
+            let artistId = artistRows.length > 0 ? artistRows[0].NgheSiID : (await connection.execute('INSERT INTO nghesi (TenNgheSi) VALUES (?)', [artist.trim()]))[0].insertId;
+            await connection.execute('INSERT INTO album_nghesi (AlbumID, NgheSiID) VALUES (?, ?)', [albumId, artistId]);
+        }
+
+        await connection.commit();
+        res.json({ message: "Cập nhật album thành công" });
+    } catch (error) {
+        await connection.rollback();
+        res.status(500).json({ error: "Lỗi cập nhật album" });
+    } finally {
+        connection.release();
+    }
+});
+
+// Xóa album
+router.delete('/albums/:id', async (req, res) => {
+    try {
+        await pool.execute('DELETE FROM album WHERE AlbumID = ?', [req.params.id]);
+        res.json({ message: "Đã xóa album" });
+    } catch (error) {
+        res.status(500).json({ error: "Lỗi khi xóa album" });
+    }
+});
+
+// 6. API QUẢN LÝ NGƯỜI DÙNG
 
 router.get('/users', async (req, res) => {
     try {
         const [rows] = await pool.execute(`
             SELECT NguoiDungID as id, TenDangNhap as username, Email as email, 
-                   TenHienThi as displayName, TrangThai as status, NgayThamGia as joinDate
+                   TenHienThi as displayName, TrangThai as status
             FROM nguoidung 
             ORDER BY NgayThamGia DESC
         `);
